@@ -58,7 +58,7 @@ type Token struct {
 	Type    TokenType
 	Lexeme  string
 	Literal interface{}
-	Line    int
+	Line    int // We could also store the location as offset + length
 }
 
 func (t Token) String() string {

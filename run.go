@@ -2,10 +2,12 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"os"
-	"strings"
+
+	"github.com/kevinmingtarja/golox/scanner"
 )
 
 func runFile(path string) error {
@@ -19,17 +21,17 @@ func runFile(path string) error {
 	if err != nil {
 		return err
 	}
-	return run(string(bytes))
+	return run(bytes)
 }
 
 func runPrompt() error {
 	scanner := bufio.NewScanner(os.Stdin)
 	for fmt.Print("> "); scanner.Scan(); fmt.Print("> ") {
-		line := scanner.Text()
-		if line == "exit" {
+		line := scanner.Bytes()
+		if bytes.Equal(line, []byte("exit")) {
 			break
 		}
-		if err := run(string(line)); err != nil {
+		if err := run(line); err != nil {
 			return err
 		}
 	}
@@ -41,10 +43,8 @@ func runPrompt() error {
 	return nil
 }
 
-func run(source string) error {
-	tokens := strings.Split(source, " ")
-	for _, token := range tokens {
-		fmt.Println(token)
-	}
+func run(src []byte) error {
+	scanner := scanner.New(src)
+	scanner.ScanTokens()
 	return nil
 }
