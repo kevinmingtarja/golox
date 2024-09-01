@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -25,17 +26,22 @@ func runFile(path string) error {
 }
 
 func runPrompt() error {
-	scanner := bufio.NewScanner(os.Stdin)
-	for fmt.Print("> "); scanner.Scan(); fmt.Print("> ") {
-		line := scanner.Bytes()
+	sc := bufio.NewScanner(os.Stdin)
+	for fmt.Print("> "); sc.Scan(); fmt.Print("> ") {
+		line := sc.Bytes()
 		if bytes.Equal(line, []byte("exit")) {
 			break
 		}
-		if err := run(line); err != nil {
-			return err
+		err := run(line)
+		if err != nil {
+			if !errors.As(err, &scanner.Error{}) {
+				return err
+			}
+			// don't kill the entire session if the user makes a mistake
+			fmt.Println(err.Error())
 		}
 	}
-	if err := scanner.Err(); err != nil {
+	if err := sc.Err(); err != nil {
 		if err != io.EOF {
 			return err
 		}
@@ -44,7 +50,7 @@ func runPrompt() error {
 }
 
 func run(src []byte) error {
-	scanner := scanner.New(src)
+	scanner := scanner.New(src, nil)
 	scanner.ScanTokens()
 	return nil
 }
