@@ -123,6 +123,16 @@ func (s *scanner) scanToken() {
 			s.addToken(token.SLASH, nil)
 		}
 		break
+
+	case ' ':
+	case '\r':
+	case '\t':
+		// ignore whitespace.
+		break
+
+	case '\n':
+		s.line++
+		break
 	default:
 		s.error(s.line, "Unexpected character.")
 		break
