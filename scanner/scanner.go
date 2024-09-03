@@ -2,6 +2,10 @@
 package scanner
 
 import (
+	"fmt"
+	"os"
+	"strconv"
+
 	"github.com/kevinmingtarja/golox/token"
 )
 
@@ -46,6 +50,10 @@ func (s *scanner) ScanTokens() {
 	s.tokens = append(s.tokens, token.Token{
 		Type: token.EOF, Lexeme: "", Literal: nil, Line: s.line,
 	})
+	for _, t := range s.tokens {
+		fmt.Println(t)
+	}
+	fmt.Fprintln(os.Stderr, s.errCount)
 }
 
 func (s *scanner) isAtEnd() bool {
@@ -133,8 +141,19 @@ func (s *scanner) scanToken() {
 	case '\n':
 		s.line++
 		break
+
+	case '"':
+		s.string()
+		break
+
 	default:
-		s.error(s.line, "Unexpected character.")
+		if isDigit(c) {
+			s.number()
+		} else if isAlhpa(c) {
+			s.identifier()
+		} else {
+			s.error(s.line, "Unexpected character.")
+		}
 		break
 	}
 }
@@ -169,9 +188,87 @@ func (s *scanner) peek() byte {
 	return s.src[s.current]
 }
 
+func (s *scanner) peekNext() byte {
+	if s.current+1 >= len(s.src) {
+		return 0
+	}
+	return s.src[s.current+1]
+}
+
 func (s *scanner) addToken(t token.TokenType, literal interface{}) {
 	text := string(s.src[s.start:s.current])
 	s.tokens = append(s.tokens, token.Token{
 		Type: t, Lexeme: text, Literal: literal, Line: s.line,
 	})
+}
+
+func (s *scanner) string() {
+	for s.peek() != '"' && !s.isAtEnd() {
+		if s.peek() == '\n' {
+			s.line++
+		}
+		s.advance()
+	}
+
+	if s.isAtEnd() {
+		s.error(s.line, "Unterminated string.")
+		return
+	}
+
+	// consume the closing quote
+	s.advance()
+
+	// trim the surrounding quotes
+	value := string(s.src[s.start+1 : s.current-1])
+	s.addToken(token.STRING, value)
+}
+
+func (s *scanner) number() {
+	for isDigit(s.peek()) {
+		s.advance()
+	}
+
+	// we need two characters lookahead to check if
+	// there's a digit after the '.'
+	if s.peek() == '.' && isDigit(s.peekNext()) {
+		s.advance()
+		for isDigit(s.peek()) {
+			s.advance()
+		}
+	}
+
+	f, err := strconv.ParseFloat(string(s.src[s.start:s.current]), 64)
+	if err != nil {
+		s.error(s.line, "Invalid number.")
+	}
+	s.addToken(token.NUMBER, f)
+}
+
+func (s *scanner) identifier() {
+	for isAlhpaNumeric(s.peek()) {
+		s.advance()
+	}
+
+	ident := string(s.src[s.start:s.current])
+	var tok token.TokenType
+	// all our keywords are at least two characters long.
+	if len(ident) > 1 {
+		tok = token.Lookup(ident)
+	} else {
+		tok = token.IDENTIFIER
+	}
+
+	s.addToken(tok, nil)
+}
+
+func isAlhpa(c byte) bool {
+	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'
+}
+
+func isAlhpaNumeric(c byte) bool {
+	return isAlhpa(c) || isDigit(c)
+}
+
+func isDigit(c byte) bool {
+	return c >= '0' && c <= '9'
 }

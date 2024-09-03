@@ -54,6 +54,25 @@ const (
 	EOF
 )
 
+var keywords = map[string]TokenType{
+	"and":    AND,
+	"class":  CLASS,
+	"else":   ELSE,
+	"false":  FALSE,
+	"for":    FOR,
+	"fun":    FUN,
+	"if":     IF,
+	"nil":    NIL,
+	"or":     OR,
+	"print":  PRINT,
+	"return": RETURN,
+	"super":  SUPER,
+	"this":   THIS,
+	"true":   TRUE,
+	"var":    VAR,
+	"while":  WHILE,
+}
+
 type Token struct {
 	Type    TokenType
 	Lexeme  string
@@ -63,4 +82,11 @@ type Token struct {
 
 func (t Token) String() string {
 	return fmt.Sprintf("%v %v %v", t.Type, t.Lexeme, t.Literal)
+}
+
+func Lookup(ident string) TokenType {
+	if tok, ok := keywords[ident]; ok {
+		return tok
+	}
+	return IDENTIFIER
 }

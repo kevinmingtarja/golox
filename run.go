@@ -50,7 +50,9 @@ func runPrompt() error {
 }
 
 func run(src []byte) error {
-	scanner := scanner.New(src, nil)
+	scanner := scanner.New(src, func(line int, message string) {
+		fmt.Printf("[line %d] Error: %s\n", line, message)
+	})
 	scanner.ScanTokens()
 	return nil
 }
