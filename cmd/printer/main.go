@@ -7,11 +7,15 @@ import (
 	"github.com/kevinmingtarja/golox/token"
 )
 
+// astPrinter is a visitor that simply prints the AST
 type astPrinter struct {
 	b *strings.Builder
 }
 
+// Visit implements the Visitor interface
 func (ap astPrinter) Visit(expr ast.Expr) ast.Visitor {
+	// depending on the type of the expression,
+	// we will print it differently
 	switch e := expr.(type) {
 	case *ast.LiteralExpr:
 		if e.Value == nil {
@@ -35,6 +39,7 @@ func (ap *astPrinter) parenthesize(name string, exprs ...ast.Expr) {
 	ap.b.Write([]byte("(" + name))
 	for _, expr := range exprs {
 		ap.b.Write([]byte(" "))
+		// recursively walk the child ASTs
 		ast.Walk(ap, expr)
 	}
 	ap.b.Write([]byte(")"))
@@ -55,6 +60,7 @@ func main() {
 	ap := astPrinter{
 		b: &strings.Builder{},
 	}
+	// walk the ast from the root
 	ast.Walk(ap, expr)
 	println(ap.b.String())
 }

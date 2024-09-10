@@ -1,9 +1,12 @@
 package ast
 
+// A Visitor is a way to inject behavior into the AST traversal done by [Walk].
+// The Visit method is called for each node in the AST.
 type Visitor interface {
 	Visit(expr Expr) Visitor
 }
 
+// Walk traverses an AST in depth-first order.
 func Walk(v Visitor, expr Expr) {
 	if v = v.Visit(expr); v == nil {
 		return
