@@ -26,7 +26,7 @@ func Parse(src []byte) ast.Expr {
 			if !ok {
 				panic(e)
 			} else if bail.msg != "" {
-				fmt.Println(bail.msg)
+				fmt.Println("parse error:", bail.msg)
 			}
 		}
 	}()
@@ -72,7 +72,20 @@ func (p *parser) previous() token.Token {
 }
 
 func (p *parser) consumeExpression() ast.Expr {
-	return p.consumeEquality()
+	return p.consumeExpressionList()
+}
+
+func (p *parser) consumeExpressionList() ast.Expr {
+	expr := p.consumeEquality()
+	for p.match(token.COMMA) {
+		op := p.previous()
+		if op.Type != token.COMMA {
+			panic("wrong type")
+		}
+		right := p.consumeEquality()
+		expr = &ast.BinaryExpr{X: expr, Op: op, Y: right}
+	}
+	return expr
 }
 
 func (p *parser) consumeEquality() ast.Expr {
