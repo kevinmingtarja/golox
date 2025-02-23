@@ -3,7 +3,6 @@ package scanner
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 
 	"github.com/kevinmingtarja/golox/token"
@@ -41,7 +40,7 @@ func (s *scanner) error(line int, message string) {
 	s.errCount++
 }
 
-func (s *scanner) ScanTokens() {
+func (s *scanner) ScanTokens() []token.Token {
 	for !s.isAtEnd() {
 		// the beginning of the next lexeme.
 		s.start = s.current
@@ -50,10 +49,11 @@ func (s *scanner) ScanTokens() {
 	s.tokens = append(s.tokens, token.Token{
 		Type: token.EOF, Lexeme: "", Literal: nil, Line: s.line,
 	})
+	fmt.Println("[DEBUG]")
 	for _, t := range s.tokens {
 		fmt.Println(t)
 	}
-	fmt.Fprintln(os.Stderr, s.errCount)
+	return s.tokens
 }
 
 func (s *scanner) isAtEnd() bool {
@@ -65,62 +65,48 @@ func (s *scanner) scanToken() {
 	switch c {
 	case '(':
 		s.addToken(token.LEFT_PAREN, nil)
-		break
 	case ')':
 		s.addToken(token.RIGHT_PAREN, nil)
-		break
 	case '{':
 		s.addToken(token.LEFT_BRACE, nil)
-		break
 	case '}':
 		s.addToken(token.RIGHT_BRACE, nil)
-		break
 	case ',':
 		s.addToken(token.COMMA, nil)
-		break
 	case '.':
 		s.addToken(token.DOT, nil)
-		break
 	case '-':
 		s.addToken(token.MINUS, nil)
-		break
 	case '+':
 		s.addToken(token.PLUS, nil)
-		break
 	case ';':
 		s.addToken(token.SEMICOLON, nil)
-		break
 	case '*':
 		s.addToken(token.STAR, nil)
-		break
 	case '!':
 		if s.match('=') {
 			s.addToken(token.BANG_EQUAL, nil)
 		} else {
 			s.addToken(token.BANG, nil)
 		}
-		break
 	case '=':
 		if s.match('=') {
 			s.addToken(token.EQUAL_EQUAL, nil)
 		} else {
 			s.addToken(token.EQUAL, nil)
 		}
-		break
 	case '<':
 		if s.match('=') {
 			s.addToken(token.LESS_EQUAL, nil)
 		} else {
 			s.addToken(token.LESS, nil)
 		}
-		break
 	case '>':
 		if s.match('=') {
 			s.addToken(token.GREATER_EQUAL, nil)
 		} else {
 			s.addToken(token.GREATER, nil)
 		}
-		break
 	case '/':
 		if s.match('/') {
 			// comment goes until the end of the line.
@@ -130,21 +116,16 @@ func (s *scanner) scanToken() {
 		} else {
 			s.addToken(token.SLASH, nil)
 		}
-		break
 
-	case ' ':
-	case '\r':
-	case '\t':
+	case ' ', '\r', '\t':
 		// ignore whitespace.
 		break
 
 	case '\n':
 		s.line++
-		break
 
 	case '"':
 		s.string()
-		break
 
 	default:
 		if isDigit(c) {
@@ -154,7 +135,6 @@ func (s *scanner) scanToken() {
 		} else {
 			s.error(s.line, "Unexpected character.")
 		}
-		break
 	}
 }
 

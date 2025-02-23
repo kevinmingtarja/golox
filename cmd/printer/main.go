@@ -1,10 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/kevinmingtarja/golox/ast"
-	"github.com/kevinmingtarja/golox/token"
+	"github.com/kevinmingtarja/golox/parser"
 )
 
 // astPrinter is a visitor that simply prints the AST
@@ -21,7 +22,15 @@ func (ap astPrinter) Visit(expr ast.Expr) ast.Visitor {
 		if e.Value == nil {
 			ap.b.Write([]byte("nil"))
 		}
-		ap.b.Write([]byte(e.Value.(string)))
+
+		switch e.Value.(type) {
+		case float64:
+			ap.b.Write(fmt.Appendf(nil, "%v", e.Value))
+		case string:
+			ap.b.Write([]byte(e.Value.(string)))
+		default:
+			panic("unreachable")
+		}
 	case *ast.BinaryExpr:
 		ap.parenthesize(e.Op.Lexeme, e.X, e.Y)
 	case *ast.GroupingExpr:
@@ -43,20 +52,24 @@ func (ap *astPrinter) parenthesize(name string, exprs ...ast.Expr) {
 		ast.Walk(ap, expr)
 	}
 	ap.b.Write([]byte(")"))
-	return
 }
 
 var _ ast.Visitor = astPrinter{}
 
 func main() {
-	expr := &ast.BinaryExpr{
-		X: &ast.UnaryExpr{
-			Op: token.Token{Type: token.MINUS, Lexeme: "-", Literal: nil, Line: 1},
-			X:  &ast.LiteralExpr{Value: "123"},
-		},
-		Op: token.Token{Type: token.PLUS, Lexeme: "+", Literal: nil, Line: 1},
-		Y:  &ast.LiteralExpr{Value: "45.67"},
+	src := []byte("-123 + (45.67)")
+	expr := parser.Parse(src)
+	if expr == nil {
+		return
 	}
+	// expr = &ast.BinaryExpr{
+	// 	X: &ast.UnaryExpr{
+	// 		Op: token.Token{Type: token.MINUS, Lexeme: "-", Literal: nil, Line: 1},
+	// 		X:  &ast.LiteralExpr{Value: "123"},
+	// 	},
+	// 	Op: token.Token{Type: token.PLUS, Lexeme: "+", Literal: nil, Line: 1},
+	// 	Y:  &ast.GroupingExpr{Expr: &ast.LiteralExpr{Value: "45.67"}},
+	// }
 	ap := astPrinter{
 		b: &strings.Builder{},
 	}
