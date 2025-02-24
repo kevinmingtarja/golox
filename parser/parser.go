@@ -76,14 +76,31 @@ func (p *parser) consumeExpression() ast.Expr {
 }
 
 func (p *parser) consumeExpressionList() ast.Expr {
-	expr := p.consumeEquality()
+	expr := p.consumeTernary()
 	for p.match(token.COMMA) {
 		op := p.previous()
 		if op.Type != token.COMMA {
 			panic("wrong type")
 		}
-		right := p.consumeEquality()
+		right := p.consumeTernary()
 		expr = &ast.BinaryExpr{X: expr, Op: op, Y: right}
+	}
+	return expr
+}
+
+func (p *parser) consumeTernary() ast.Expr {
+	expr := p.consumeEquality()
+	if p.match(token.QUESTION) {
+		op := p.previous()
+		if op.Type != token.QUESTION {
+			panic("wrong type")
+		}
+
+		left := p.consumeExpression()
+		p.consume(token.COLON, "Expect ':' after expression.")
+		right := p.consumeTernary()
+
+		expr = &ast.ConditionalOperator{Cond: expr, X: left, Y: right}
 	}
 	return expr
 }

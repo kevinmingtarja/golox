@@ -13,19 +13,23 @@ func Walk(v Visitor, expr Expr) {
 	}
 
 	// walk children
-	switch e := expr.(type) {
-	case *LiteralExpr:
-		// nothing to do
-	case *BinaryExpr:
-		Walk(v, e.X)
-		Walk(v, e.Y)
-	case *GroupingExpr:
-		Walk(v, e.Expr)
-	case *UnaryExpr:
-		Walk(v, e.X)
-	default:
-		panic("unreachable")
-	}
+	// switch e := expr.(type) {
+	// case *LiteralExpr:
+	// 	// nothing to do
+	// case *BinaryExpr:
+	// 	Walk(v, e.X)
+	// 	Walk(v, e.Y)
+	// case *GroupingExpr:
+	// 	Walk(v, e.Expr)
+	// case *UnaryExpr:
+	// 	Walk(v, e.X)
+	// case *ConditionalOperator:
+	// 	Walk(v, e.Cond)
+	// 	Walk(v, e.X)
+	// 	Walk(v, e.Y)
+	// default:
+	// 	panic("unreachable")
+	// }
 
-	v.Visit(nil)
+	// v.Visit(nil)
 }

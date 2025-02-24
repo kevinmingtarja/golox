@@ -26,12 +26,19 @@ type (
 		Op token.Token
 		X  Expr
 	}
+
+	ConditionalOperator struct {
+		Cond Expr
+		X    Expr
+		Y    Expr
+	}
 )
 
 // exprNode() ensures that only expression nodes can be
 // assigned to an Expr.
 // inspired by: https://github.com/golang/go/blob/807e01db4840e25e4d98911b28a8fa54244b8dfa/src/go/ast/ast.go#L548
-func (*BinaryExpr) exprNode()   {}
-func (*GroupingExpr) exprNode() {}
-func (*LiteralExpr) exprNode()  {}
-func (*UnaryExpr) exprNode()    {}
+func (*BinaryExpr) exprNode()          {}
+func (*GroupingExpr) exprNode()        {}
+func (*LiteralExpr) exprNode()         {}
+func (*UnaryExpr) exprNode()           {}
+func (*ConditionalOperator) exprNode() {}
